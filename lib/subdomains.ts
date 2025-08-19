@@ -1,5 +1,11 @@
 import { redis } from '@/lib/redis';
 
+export type Subdomain = {
+  name: string;
+  emoji: string;
+  createdAt: number;
+};
+
 export function isValidIcon(str: string) {
   if (str.length > 10) {
     return false;
@@ -31,12 +37,22 @@ type SubdomainData = {
   createdAt: number;
 };
 
-export async function getSubdomainData(subdomain: string) {
+export async function getSubdomain(
+  subdomain: string
+): Promise<Subdomain | null> {
   const sanitizedSubdomain = subdomain.toLowerCase().replace(/[^a-z0-9-]/g, '');
   const data = await redis.get<SubdomainData>(
     `subdomain:${sanitizedSubdomain}`
   );
-  return data;
+
+  if (!data) {
+    return null;
+  }
+
+  return {
+    name: sanitizedSubdomain,
+    ...data
+  };
 }
 
 export async function getAllSubdomains() {
